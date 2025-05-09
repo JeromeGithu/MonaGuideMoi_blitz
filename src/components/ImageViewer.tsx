@@ -11,40 +11,19 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const { imageState, setImageState, setLoading } = useStore();
 
-useEffect(() => {
-  const img = new Image();
-  img.src = imageUrl;
-  img.onload = () => {
-    let rafId;
-    const animate = () => {
-      if (containerRef.current) {
-        const container = containerRef.current.getBoundingClientRect();
-        console.log('Real-time container dimensions:', container);
-      }
-      rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-    setLoading(false);
-    if (containerRef.current) {
-      const container = containerRef.current.getBoundingClientRect();
-      const scale = Math.min(container.width / img.width, container.height / img.height);
-      const newPosition = {
-        x: (container.width - img.width * scale) / 2,
-        y: (container.height - img.height * scale) / 2,
-      };
-      setImageState({ scale, position: newPosition });
-    }
-  };
-  img.onerror = () => console.error('Failed to load image:', imageUrl);
-  return () => cancelAnimationFrame(rafId); // Nettoyage
-}, [imageUrl, setLoading, setImageState]);
+  useEffect(() => {
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => setLoading(false);
+  }, [imageUrl, setLoading]);
 
-  
   const constrainPosition = (x: number, y: number) => {
     if (!containerRef.current || !imageRef.current) return { x, y };
 
     const container = containerRef.current.getBoundingClientRect();
     const image = imageRef.current.getBoundingClientRect();
+    const scaledWidth = image.width / imageState.scale;
+    const scaledHeight = image.height / imageState.scale;
 
     const minX = Math.min(0, container.width - image.width);
     const maxX = Math.max(0, container.width - image.width);
@@ -59,16 +38,18 @@ useEffect(() => {
 
   const bind = useGesture(
     {
-      onDrag: ({ delta: [dx, dy], first, last }) => {
+      onDrag: ({ movement: [mx, my], first, last }) => {
         if (first) setImageState({ isDragging: true });
         if (last) setImageState({ isDragging: false });
         
         const newPosition = constrainPosition(
-          imageState.position.x + dx,
-          imageState.position.y + dy
+          mx + imageState.position.x,
+          my + imageState.position.y
         );
         
-        setImageState({ position: newPosition });
+        setImageState({
+          position: newPosition,
+        });
       },
       onPinch: ({ offset: [scale] }) => {
         setImageState({
@@ -86,8 +67,12 @@ useEffect(() => {
       },
     },
     {
-      drag: { from: () => [imageState.position.x, imageState.position.y] },
-      pinch: { from: () => [imageState.scale] },
+      drag: {
+        from: () => [imageState.position.x, imageState.position.y],
+      },
+      pinch: {
+        from: () => [imageState.scale],
+      },
     }
   );
 
@@ -102,7 +87,7 @@ useEffect(() => {
     <div className="relative w-full h-full flex items-center justify-center">
       <div
         ref={containerRef}
-        className="relative overflow-hidden w-full h-full bg-red-200" // Couleur de fond rouge pour visualiser
+        className="relative overflow-hidden w-full h-full"
         {...bind()}
       >
         <img
@@ -113,7 +98,7 @@ useEffect(() => {
           style={{
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
-            }px) scale(${imageState.scale || 1})`,
+            }px) scale(${imageState.scale})`,
             transformOrigin: 'center',
             touchAction: 'none',
           }}
@@ -126,7 +111,7 @@ useEffect(() => {
           min={MIN_SCALE}
           max={MAX_SCALE}
           step={0.1}
-          value={imageState.scale || 1}
+          value={imageState.scale}
           onChange={(e) => setImageState({ scale: parseFloat(e.target.value) })}
           className="w-32 h-2 bg-white rounded-lg appearance-none cursor-pointer"
         />
