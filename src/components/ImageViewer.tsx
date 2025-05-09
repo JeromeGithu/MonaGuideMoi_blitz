@@ -15,22 +15,31 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-      if (!containerRef.current || !imageRef.current) return;
+      if (!containerRef.current) return;
 
       const container = containerRef.current.getBoundingClientRect();
       const imgWidth = img.naturalWidth;
       const imgHeight = img.naturalHeight;
 
-      // Calculer l'échelle pour que l'image soit entièrement visible
+      // Log dimensions for debugging
+      console.log('Container width:', container.width);
+      console.log('Container height:', container.height);
+      console.log('Image natural width:', imgWidth);
+      console.log('Image natural height:', imgHeight);
+
+      // Calculate scale to fit container
       const scaleX = container.width / imgWidth;
       const scaleY = container.height / imgHeight;
-      const initialScale = Math.min(scaleX, scaleY, 1); // Ne pas agrandir au-delà de la taille réelle
+      const initialScale = Math.min(scaleX, scaleY); // Removed cap at 1 to allow scaling up
 
-      // Centrer l'image
+      // Center the image
       const initialPosition = {
         x: (container.width - imgWidth * initialScale) / 2,
         y: (container.height - imgHeight * initialScale) / 2,
       };
+
+      console.log('Initial scale:', initialScale);
+      console.log('Initial position:', initialPosition);
 
       setImageState({
         scale: initialScale,
