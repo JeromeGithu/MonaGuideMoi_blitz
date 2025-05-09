@@ -11,7 +11,6 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const { imageState, setImageState, setLoading } = useStore();
 
-  // Appliquer une échelle initiale par défaut avant le chargement
   useEffect(() => {
     console.log('useEffect triggered with imageUrl:', imageUrl);
     const img = new Image();
@@ -20,8 +19,8 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
       console.log('Image loaded successfully:', imageUrl);
       if (containerRef.current) {
         const container = containerRef.current.getBoundingClientRect();
-        const scale = Math.min(container.width / img.width, container.height / img.height);
         console.log('Container dimensions:', container);
+        const scale = Math.min(container.width / img.width, container.height / img.height); // Ajuste à la plus petite dimension
         console.log('Calculated initial scale:', scale);
 
         // Centrer l'image
@@ -98,7 +97,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
     <div className="relative w-full h-full flex items-center justify-center">
       <div
         ref={containerRef}
-        className="relative overflow-hidden w-full h-full"
+        className="relative overflow-hidden w-full h-full bg-red-200" // Couleur de fond rouge pour visualiser
         {...bind()}
       >
         <img
@@ -109,7 +108,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           style={{
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
-            }px) scale(${imageState.scale || 1})`, // Par défaut scale: 1 si undefined
+            }px) scale(${imageState.scale || 1})`,
             transformOrigin: 'center',
             touchAction: 'none',
           }}
