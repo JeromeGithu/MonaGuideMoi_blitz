@@ -14,7 +14,7 @@ function App() {
     <div className="min-h-screen bg-[#F5EAD6]">
       <div className="relative w-full h-screen">
         <ImageViewer imageUrl={imageUrl} />
-        {/* <Panel /> */}
+        <Panel />
         {isLoading && <LoadingSpinner />}
       </div>
     </div>
