@@ -9,11 +9,8 @@ function App() {
   
   const imageUrl = "https://images.pexels.com/photos/1646953/pexels-photo-1646953.jpeg";
 
-  console.log('App rendered, isLoading:', isLoading);
-  console.log('Image URL passed to ImageViewer:', imageUrl);
-
   return (
-    <div className="min-h-screen bg-[#F5EAD6]">
+    <div className="min-h-screen bg-[#F5EAD6] flex items-center justify-center">
       <div className="relative w-full h-screen">
         <ImageViewer imageUrl={imageUrl} />
         <Panel />
