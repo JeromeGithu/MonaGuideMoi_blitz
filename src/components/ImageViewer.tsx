@@ -3,7 +3,6 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
-const MIN_SCALE = 1; // Remplacé dynamiquement par l'échelle initiale
 const MAX_SCALE = 4;
 
 export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
@@ -12,30 +11,26 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const { imageState, setImageState, setLoading } = useStore();
 
   useEffect(() => {
-    console.log('useEffect triggered with imageUrl:', imageUrl);
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-      console.log('Image loaded successfully:', imageUrl);
       setLoading(false);
       if (containerRef.current && imageRef.current) {
         const container = containerRef.current.getBoundingClientRect();
         const imageAspectRatio = img.width / img.height;
         const containerAspectRatio = container.width / container.height;
-        
-        let scale = 1;
-        if (imageAspectRatio > containerAspectRatio) {
-          scale = container.width / img.width; // Ajuste sur la largeur
-        } else {
-          scale = container.height / img.height; // Ajuste sur la hauteur
-        }
-        
-        console.log('Calculated initial scale:', scale);
+
+        // Ajuster l'échelle pour remplir le conteneur (prendre le maximum)
+        const scaleWidth = container.width / img.width;
+        const scaleHeight = container.height / img.height;
+        const scale = Math.max(scaleWidth, scaleHeight);
+
         // Centrer l'image
         const newPosition = {
           x: (container.width - img.width * scale) / 2,
           y: (container.height - img.height * scale) / 2,
         };
+
         setImageState({ scale, position: newPosition });
       }
     };
@@ -64,17 +59,17 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
       onDrag: ({ delta: [dx, dy], first, last }) => {
         if (first) setImageState({ isDragging: true });
         if (last) setImageState({ isDragging: false });
-        
+
         const newPosition = constrainPosition(
           imageState.position.x + dx,
           imageState.position.y + dy
         );
-        
+
         setImageState({ position: newPosition });
       },
       onPinch: ({ offset: [scale] }) => {
         setImageState({
-          scale: Math.min(Math.max(scale, imageState.scale), MAX_SCALE), // MIN_SCALE remplacé par l'échelle initiale
+          scale: Math.min(Math.max(scale, imageState.scale), MAX_SCALE),
         });
       },
       onWheel: ({ delta: [, dy], event }) => {
@@ -116,16 +111,16 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
             }px) scale(${imageState.scale})`,
-            transformOrigin: 'center',
+            transformOrigin: 'top left', // Changement pour simplifier le positionnement
             touchAction: 'none',
           }}
         />
       </div>
-      
+
       <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
         <input
           type="range"
-          min={imageState.scale} // MIN_SCALE remplacé par l'échelle initiale
+          min={imageState.scale}
           max={MAX_SCALE}
           step={0.1}
           value={imageState.scale}
