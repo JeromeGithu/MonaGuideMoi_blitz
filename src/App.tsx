@@ -7,10 +7,11 @@ import { useStore } from './store';
 function App() {
   const { isLoading } = useStore();
   
+  // For testing purposes, using a placeholder image URL
   const imageUrl = "https://images.pexels.com/photos/1646953/pexels-photo-1646953.jpeg";
 
   return (
-    <div className="min-h-screen bg-[#F5EAD6] flex items-center justify-center">
+    <div className="min-h-screen bg-[#F5EAD6]">
       <div className="relative w-full h-screen">
         <ImageViewer imageUrl={imageUrl} />
         <Panel />
