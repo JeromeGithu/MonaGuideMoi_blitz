@@ -131,7 +131,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                         top: '0',
                         transform: `translate(${imageState.position.x}px, ${imageState.position.y}px) scale(${imageState.scale})`,
                         transformOrigin: 'center',
-                        touch-action: 'none',
+                        touchAction: 'none',
                     }}
                     className="transform-gpu transition-transform duration-100"
                 />
