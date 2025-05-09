@@ -72,9 +72,13 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                 if (first) setImageState({ isDragging: true });
                 if (last) setImageState({ isDragging: false });
 
+                // Ajuster le déplacement en fonction de l'échelle pour synchroniser avec le curseur
+                const adjustedMx = mx / imageState.scale;
+                const adjustedMy = my / imageState.scale;
+
                 const newPosition = constrainPosition(
-                    imageState.position.x + mx,
-                    imageState.position.y + my
+                    imageState.position.x + adjustedMx,
+                    imageState.position.y + adjustedMy
                 );
                 setImageState({
                     position: newPosition,
@@ -97,7 +101,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
         },
         {
             drag: {
-                from: () => [imageState.position.x, imageState.position.y],
+                from: () => [imageState.position.x * imageState.scale, imageState.position.y * imageState.scale],
             },
             pinch: {
                 from: () => [imageState.scale],
