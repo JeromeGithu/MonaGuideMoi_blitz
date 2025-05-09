@@ -3,6 +3,8 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
+// test
+  
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 
