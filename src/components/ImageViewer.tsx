@@ -128,7 +128,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           alt="Paint guide"
           className="absolute transform-gpu transition-transform duration-100 object-contain"
           style={{
-            maxWidth: 'none',
+            // maxWidth: 'none',
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
             }px) scale(${imageState.scale})`,
