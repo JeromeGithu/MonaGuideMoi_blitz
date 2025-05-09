@@ -3,7 +3,6 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
-const MIN_SCALE = 0.1;
 const MAX_SCALE = 4;
 
 export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
@@ -34,6 +33,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
 
             setImageState({
                 scale: initialScale,
+                minScale: initialScale,
                 position: initialPosition,
             });
             setLoading(false);
@@ -60,7 +60,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
 
         return {
             x: Math.min(Math.max(x, xMin), xMax),
-            y: Math.min(Math.max(y, yMin), yMax),
+            y: Math.min(Math.max(y, yMin), maxY),
         };
     };
 
@@ -80,7 +80,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
             },
             onPinch: ({ offset: [scale] }) => {
                 setImageState({
-                    scale: Math.min(Math.max(scale, MIN_SCALE), MAX_SCALE),
+                    scale: Math.min(Math.max(scale, imageState.minScale), MAX_SCALE),
                 });
             },
             onWheel: ({ delta: [, dy], event }) => {
@@ -88,7 +88,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                     event.preventDefault();
                     const newScale = imageState.scale - dy * 0.01;
                     setImageState({
-                        scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
+                        scale: Math.min(Math.max(newScale, imageState.minScale), MAX_SCALE),
                     });
                 }
             },
@@ -106,7 +106,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
     const handleZoom = (delta: number) => {
         const newScale = imageState.scale + delta;
         setImageState({
-            scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
+            scale: Math.min(Math.max(newScale, imageState.minScale), MAX_SCALE),
         });
     };
 
@@ -137,7 +137,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
             <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
                 <input
                     type="range"
-                    min={MIN_SCALE}
+                    min={imageState.minScale}
                     max={MAX_SCALE}
                     step={0.1}
                     value={imageState.scale}
