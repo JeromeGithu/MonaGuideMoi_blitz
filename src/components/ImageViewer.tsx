@@ -1,135 +1,42 @@
-import React, { useEffect, useRef } from 'react';
-import { useGesture } from 'react-use-gesture';
-import { Minus, Plus } from 'lucide-react';
-import { useStore } from '../store';
+import React, { useState, useEffect } from 'react';
+import LoadingSpinner from './LoadingSpinner';
 
-const MIN_SCALE = 1;
-const MAX_SCALE = 4;
+interface ImageViewerProps {
+  src: string;
+  alt?: string;
+}
 
-export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const { imageState, setImageState, setLoading } = useStore();
+const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt = 'Image' }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+
     const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => setLoading(false);
-  }, [imageUrl, setLoading]);
-
-  const constrainPosition = (x: number, y: number) => {
-    if (!containerRef.current || !imageRef.current) return { x, y };
-
-    const container = containerRef.current.getBoundingClientRect();
-    const image = imageRef.current.getBoundingClientRect();
-    const scaledWidth = image.width / imageState.scale;
-    const scaledHeight = image.height / imageState.scale;
-
-    const minX = Math.min(0, container.width - image.width);
-    const maxX = Math.max(0, container.width - image.width);
-    const minY = Math.min(0, container.height - image.height);
-    const maxY = Math.max(0, container.height - image.height);
-
-    return {
-      x: Math.min(Math.max(x, minX), maxX),
-      y: Math.min(Math.max(y, minY), maxY),
+    img.src = src;
+    img.onload = () => setIsLoading(false);
+    img.onerror = () => {
+      setIsLoading(false);
+      setError('Failed to load image');
     };
-  };
+  }, [src]);
 
-  const bind = useGesture(
-    {
-      onDrag: ({ movement: [mx, my], first, last }) => {
-        if (first) setImageState({ isDragging: true });
-        if (last) setImageState({ isDragging: false });
-        
-        const newPosition = constrainPosition(
-          mx + imageState.position.x,
-          my + imageState.position.y
-        );
-        
-        setImageState({
-          position: newPosition,
-        });
-      },
-      onPinch: ({ offset: [scale] }) => {
-        setImageState({
-          scale: Math.min(Math.max(scale, MIN_SCALE), MAX_SCALE),
-        });
-      },
-      onWheel: ({ delta: [, dy], event }) => {
-        if (event.ctrlKey) {
-          event.preventDefault();
-          const newScale = imageState.scale - dy * 0.01;
-          setImageState({
-            scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
-          });
-        }
-      },
-    },
-    {
-      drag: {
-        from: () => [imageState.position.x, imageState.position.y],
-      },
-      pinch: {
-        from: () => [imageState.scale],
-      },
-    }
-  );
-
-  const handleZoom = (delta: number) => {
-    const newScale = imageState.scale + delta;
-    setImageState({
-      scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
-    });
-  };
+  if (error) {
+    return <div className="text-red-500 text-center">{error}</div>;
+  }
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div
-        ref={containerRef}
-        className="relative overflow-hidden w-full h-full"
-        {...bind()}
-      >
-        <img
-          ref={imageRef}
-          src={imageUrl}
-          alt="Paint guide"
-          className="absolute transform-gpu transition-transform duration-100"
-          style={{
-            transform: `translate(${imageState.position.x}px, ${
-              imageState.position.y
-            }px) scale(${imageState.scale})`,
-            transformOrigin: 'center',
-            touchAction: 'none',
-          }}
-        />
-      </div>
-      
-      <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
-        <input
-          type="range"
-          min={MIN_SCALE}
-          max={MAX_SCALE}
-          step={0.1}
-          value={imageState.scale}
-          onChange={(e) => setImageState({ scale: parseFloat(e.target.value) })}
-          className="w-32 h-2 bg-white rounded-lg appearance-none cursor-pointer"
-        />
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleZoom(0.1)}
-            className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
-          >
-            <Plus className="w-6 h-6 text-gray-700" />
-          </button>
-          <button
-            onClick={() => handleZoom(-0.1)}
-            className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
-          >
-            <Minus className="w-6 h-6 text-gray-700" />
-          </button>
-        </div>
-      </div>
+      {isLoading && <LoadingSpinner />}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-contain ${isLoading ? 'hidden' : 'block'}`}
+      />
     </div>
   );
 };
+
+export default ImageViewer;
