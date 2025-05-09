@@ -106,7 +106,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
     };
 
     return (
-        <div className="relative w-full h-full flex items-center justify-center">
+        < 🙂div className="relative w-full h-full flex items-center justify-center">
             <div ref={containerRef} className="relative overflow-hidden w-full h-full" {...bind()}>
                 <img
                     ref={imageRef}
@@ -121,6 +121,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                         transform: `translate(${imageState.position.x}px, ${imageState.position.y}px) scale(${imageState.scale})`,
                         transformOrigin: 'center',
                         touchAction: 'none',
+                        zIndex: 1, // Ajouté pour s'assurer que l'image est au-dessus du Panel
                     }}
                     className="transform-gpu transition-transform duration-100"
                 />
