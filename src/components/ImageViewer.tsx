@@ -11,30 +11,35 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const { imageState, setImageState, setLoading } = useStore();
 
-  useEffect(() => {
-    console.log('useEffect triggered with imageUrl:', imageUrl);
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      console.log('Image loaded successfully:', imageUrl);
+useEffect(() => {
+  const img = new Image();
+  img.src = imageUrl;
+  img.onload = () => {
+    let rafId;
+    const animate = () => {
       if (containerRef.current) {
         const container = containerRef.current.getBoundingClientRect();
-        console.log('Container dimensions:', container);
-        const scale = Math.min(container.width / img.width, container.height / img.height); // Ajuste à la plus petite dimension
-        console.log('Calculated initial scale:', scale);
-
-        // Centrer l'image
-        const newPosition = {
-          x: (container.width - img.width * scale) / 2,
-          y: (container.height - img.height * scale) / 2,
-        };
-        setImageState({ scale, position: newPosition });
-        setLoading(false);
+        console.log('Real-time container dimensions:', container);
       }
+      rafId = requestAnimationFrame(animate);
     };
-    img.onerror = () => console.error('Failed to load image:', imageUrl);
-  }, [imageUrl, setLoading, setImageState]);
+    rafId = requestAnimationFrame(animate);
+    setLoading(false);
+    if (containerRef.current) {
+      const container = containerRef.current.getBoundingClientRect();
+      const scale = Math.min(container.width / img.width, container.height / img.height);
+      const newPosition = {
+        x: (container.width - img.width * scale) / 2,
+        y: (container.height - img.height * scale) / 2,
+      };
+      setImageState({ scale, position: newPosition });
+    }
+  };
+  img.onerror = () => console.error('Failed to load image:', imageUrl);
+  return () => cancelAnimationFrame(rafId); // Nettoyage
+}, [imageUrl, setLoading, setImageState]);
 
+  
   const constrainPosition = (x: number, y: number) => {
     if (!containerRef.current || !imageRef.current) return { x, y };
 
