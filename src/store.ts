@@ -1,26 +1,27 @@
-import { create } from 'zustand';
-import { AppState, ImageState } from './types';
+import create from 'zustand';
 
-const initialImageState: ImageState = {
-  scale: 1,
-  position: { x: 0, y: 0 },
-  isDragging: false,
-};
+interface ImageState {
+  scale: number;
+  minScale: number;
+  position: { x: number; y: number };
+  isDragging: boolean;
+}
 
-export const useStore = create<AppState>((set) => ({
-  imageState: initialImageState,
-  isPanelOpen: false,
+interface StoreState {
+  imageState: ImageState;
+  setImageState: (partialState: Partial<ImageState>) => void;
+  isLoading: boolean;
+  setLoading: (loading: boolean) => void;
+}
+
+export const useStore = create<StoreState>((set) => ({
+  imageState: {
+    scale: 1,
+    minScale: 1,
+    position: { x: 0, y: 0 },
+    isDragging: false,
+  },
+  setImageState: (partialState) => set((state) => ({ imageState: { ...state.imageState, ...partialState } })),
   isLoading: true,
-  setImageState: (state) =>
-    set((prev) => ({
-      imageState: { ...prev.imageState, ...state },
-    })),
-  togglePanel: () =>
-    set((prev) => ({
-      isPanelOpen: !prev.isPanelOpen,
-    })),
-  setLoading: (loading) =>
-    set(() => ({
-      isLoading: loading,
-    })),
+  setLoading: (loading) => set({ isLoading: loading }),
 }));
