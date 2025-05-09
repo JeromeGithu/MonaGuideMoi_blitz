@@ -11,38 +11,35 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const { imageState, setImageState, setLoading } = useStore();
 
-  useEffect(() => {
-    let rafId: number | null = null;
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      const animate = () => {
-        if (containerRef.current) {
-          const container = containerRef.current.getBoundingClientRect();
-          console.log('Real-time container dimensions:', container);
-        }
-        rafId = requestAnimationFrame(animate);
-      };
-      rafId = requestAnimationFrame(animate);
-      setLoading(false);
+useEffect(() => {
+  const img = new Image();
+  img.src = imageUrl;
+  img.onload = () => {
+    let rafId;
+    const animate = () => {
       if (containerRef.current) {
         const container = containerRef.current.getBoundingClientRect();
-        const scale = Math.min(container.width / img.width, container.height / img.height);
-        const newPosition = {
-          x: (container.width - img.width * scale) / 2,
-          y: (container.height - img.height * scale) / 2,
-        };
-        setImageState({ scale, position: newPosition });
+        console.log('Real-time container dimensions:', container);
       }
+      rafId = requestAnimationFrame(animate);
     };
-    img.onerror = () => console.error('Failed to load image:', imageUrl);
-    return () => {
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-      }
-    };
-  }, [imageUrl, setLoading, setImageState]);
+    rafId = requestAnimationFrame(animate);
+    setLoading(false);
+    if (containerRef.current) {
+      const container = containerRef.current.getBoundingClientRect();
+      const scale = Math.min(container.width / img.width, container.height / img.height);
+      const newPosition = {
+        x: (container.width - img.width * scale) / 2,
+        y: (container.height - img.height * scale) / 2,
+      };
+      setImageState({ scale, position: newPosition });
+    }
+  };
+  img.onerror = () => console.error('Failed to load image:', imageUrl);
+  return () => cancelAnimationFrame(rafId); // Nettoyage
+}, [imageUrl, setLoading, setImageState]);
 
+  
   const constrainPosition = (x: number, y: number) => {
     if (!containerRef.current || !imageRef.current) return { x, y };
 
@@ -105,7 +102,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
     <div className="relative w-full h-full flex items-center justify-center">
       <div
         ref={containerRef}
-        className="relative overflow-hidden w-full h-full bg-red-200"
+        className="relative overflow-hidden w-full h-full bg-red-200" // Couleur de fond rouge pour visualiser
         {...bind()}
       >
         <img
