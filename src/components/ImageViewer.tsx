@@ -50,15 +50,13 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
         const cw = container.width;
         const ch = container.height;
 
-        // Calculer les dimensions de l'image après mise à l'échelle
-        const scaledWidth = iw * scale;
-        const scaledHeight = ih * scale;
-
-        // Limites pour que les bords de l'image ne dépassent pas ceux du conteneur
-        const xMin = cw - scaledWidth; // Bord droit de l'image au bord gauche du conteneur
-        const xMax = 0; // Bord gauche de l'image au bord gauche du conteneur
-        const yMin = ch - scaledHeight; // Bord bas de l'image au bord haut du conteneur
-        const yMax = 0; // Bord haut de l'image au bord haut du conteneur
+        // Calculer les limites dans l'espace avant mise à l'échelle
+        // Position minimale (xMin, yMin) : bord droit/bas de l'image aligné avec le bord droit/bas du conteneur
+        const xMin = (cw / scale) - iw;
+        const yMin = (ch / scale) - ih;
+        // Position maximale (xMax, yMax) : bord gauche/haut de l'image aligné avec le bord gauche/haut du conteneur
+        const xMax = 0;
+        const yMax = 0;
 
         return {
             x: Math.min(Math.max(x, xMin), xMax),
