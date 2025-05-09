@@ -11,29 +11,26 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const { imageState, setImageState, setLoading } = useStore();
 
+  // Appliquer une échelle initiale par défaut avant le chargement
   useEffect(() => {
+    console.log('useEffect triggered with imageUrl:', imageUrl);
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-      setLoading(false);
-      if (containerRef.current && imageRef.current) {
+      console.log('Image loaded successfully:', imageUrl);
+      if (containerRef.current) {
         const container = containerRef.current.getBoundingClientRect();
-        const imageAspectRatio = img.width / img.height;
-        const containerAspectRatio = container.width / container.height;
-        
-        let scale = 1;
-        if (imageAspectRatio > containerAspectRatio) {
-          scale = container.width / img.width;
-        } else {
-          scale = container.height / img.height;
-        }
-        
-        // Centrer l'image dans le conteneur
+        const scale = Math.min(container.width / img.width, container.height / img.height);
+        console.log('Container dimensions:', container);
+        console.log('Calculated initial scale:', scale);
+
+        // Centrer l'image
         const newPosition = {
           x: (container.width - img.width * scale) / 2,
           y: (container.height - img.height * scale) / 2,
         };
         setImageState({ scale, position: newPosition });
+        setLoading(false);
       }
     };
     img.onerror = () => console.error('Failed to load image:', imageUrl);
@@ -112,7 +109,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           style={{
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
-            }px) scale(${imageState.scale})`,
+            }px) scale(${imageState.scale || 1})`, // Par défaut scale: 1 si undefined
             transformOrigin: 'center',
             touchAction: 'none',
           }}
@@ -125,7 +122,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           min={MIN_SCALE}
           max={MAX_SCALE}
           step={0.1}
-          value={imageState.scale}
+          value={imageState.scale || 1}
           onChange={(e) => setImageState({ scale: parseFloat(e.target.value) })}
           className="w-32 h-2 bg-white rounded-lg appearance-none cursor-pointer"
         />
