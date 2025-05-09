@@ -3,7 +3,7 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
-const MIN_SCALE = 1; // Remplacé dynamiquement par l'échelle initiale
+const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 
 export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
@@ -12,11 +12,9 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const { imageState, setImageState, setLoading } = useStore();
 
   useEffect(() => {
-    console.log('useEffect triggered with imageUrl:', imageUrl);
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-      console.log('Image loaded successfully:', imageUrl);
       setLoading(false);
       if (containerRef.current && imageRef.current) {
         const container = containerRef.current.getBoundingClientRect();
@@ -25,13 +23,12 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
         
         let scale = 1;
         if (imageAspectRatio > containerAspectRatio) {
-          scale = container.width / img.width; // Ajuste sur la largeur
+          scale = container.width / img.width;
         } else {
-          scale = container.height / img.height; // Ajuste sur la hauteur
+          scale = container.height / img.height;
         }
         
-        console.log('Calculated initial scale:', scale);
-        // Centrer l'image
+        // Centrer l'image dans le conteneur
         const newPosition = {
           x: (container.width - img.width * scale) / 2,
           y: (container.height - img.height * scale) / 2,
@@ -74,7 +71,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
       },
       onPinch: ({ offset: [scale] }) => {
         setImageState({
-          scale: Math.min(Math.max(scale, imageState.scale), MAX_SCALE), // MIN_SCALE remplacé par l'échelle initiale
+          scale: Math.min(Math.max(scale, MIN_SCALE), MAX_SCALE),
         });
       },
       onWheel: ({ delta: [, dy], event }) => {
@@ -82,7 +79,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           event.preventDefault();
           const newScale = imageState.scale - dy * 0.01;
           setImageState({
-            scale: Math.min(Math.max(newScale, imageState.scale), MAX_SCALE),
+            scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
           });
         }
       },
@@ -96,7 +93,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   const handleZoom = (delta: number) => {
     const newScale = imageState.scale + delta;
     setImageState({
-      scale: Math.min(Math.max(newScale, imageState.scale), MAX_SCALE),
+      scale: Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE),
     });
   };
 
@@ -125,7 +122,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
       <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
         <input
           type="range"
-          min={imageState.scale} // MIN_SCALE remplacé par l'échelle initiale
+          min={MIN_SCALE}
           max={MAX_SCALE}
           step={0.1}
           value={imageState.scale}
