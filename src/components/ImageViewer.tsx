@@ -3,8 +3,6 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
-// test
-  
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 
@@ -16,8 +14,31 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
   useEffect(() => {
     const img = new Image();
     img.src = imageUrl;
-    img.onload = () => setLoading(false);
-  }, [imageUrl, setLoading]);
+    img.onload = () => {
+      if (!containerRef.current || !imageRef.current) return;
+
+      const container = containerRef.current.getBoundingClientRect();
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+
+      // Calculer l'échelle pour que l'image soit entièrement visible
+      const scaleX = container.width / imgWidth;
+      const scaleY = container.height / imgHeight;
+      const initialScale = Math.min(scaleX, scaleY, 1); // Ne pas agrandir au-delà de la taille réelle
+
+      // Centrer l'image
+      const initialPosition = {
+        x: (container.width - imgWidth * initialScale) / 2,
+        y: (container.height - imgHeight * initialScale) / 2,
+      };
+
+      setImageState({
+        scale: initialScale,
+        position: initialPosition,
+      });
+      setLoading(false);
+    };
+  }, [imageUrl, setLoading, setImageState]);
 
   const constrainPosition = (x: number, y: number) => {
     if (!containerRef.current || !imageRef.current) return { x, y };
@@ -43,12 +64,12 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
       onDrag: ({ movement: [mx, my], first, last }) => {
         if (first) setImageState({ isDragging: true });
         if (last) setImageState({ isDragging: false });
-        
+
         const newPosition = constrainPosition(
           mx + imageState.position.x,
           my + imageState.position.y
         );
-        
+
         setImageState({
           position: newPosition,
         });
@@ -96,7 +117,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           ref={imageRef}
           src={imageUrl}
           alt="Paint guide"
-          className="absolute transform-gpu transition-transform duration-100"
+          className="absolute transform-gpu transition-transform duration-100 object-contain"
           style={{
             transform: `translate(${imageState.position.x}px, ${
               imageState.position.y
@@ -106,7 +127,7 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
           }}
         />
       </div>
-      
+
       <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
         <input
           type="range"
