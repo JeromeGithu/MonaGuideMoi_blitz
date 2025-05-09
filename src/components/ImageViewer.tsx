@@ -3,7 +3,7 @@ import { useGesture } from 'react-use-gesture';
 import { Minus, Plus } from 'lucide-react';
 import { useStore } from '../store';
 
-const MIN_SCALE = 1;
+const MIN_SCALE = 0.1;
 const MAX_SCALE = 4;
 
 export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
@@ -21,13 +21,15 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
             const imgWidth = img.naturalWidth;
             const imgHeight = img.naturalHeight;
 
+            // Calculer l'échelle initiale pour adapter l'image au conteneur
             const scaleX = container.width / imgWidth;
             const scaleY = container.height / imgHeight;
             const initialScale = Math.min(scaleX, scaleY);
 
+            // Centrer l'image en alignant son centre avec celui du conteneur
             const initialPosition = {
-                x: (container.width - imgWidth * initialScale) / 2,
-                y: (container.height - imgHeight * initialScale) / 2,
+                x: container.width / 2 - imgWidth / 2,
+                y: container.height / 2 - imgHeight / 2,
             };
 
             setImageState({
@@ -42,19 +44,23 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
         if (!containerRef.current || !imageRef.current) return { x, y };
 
         const container = containerRef.current.getBoundingClientRect();
-        const image = imageRef.current.getBoundingClientRect();
-        const layoutWidth = image.width;
-        const layoutHeight = image.height;
-        const scale = imageState.scale;
+        const { scale } = imageState;
+        const iw = imageRef.current.naturalWidth;
+        const ih = imageRef.current.naturalHeight;
+        const cw = container.width;
+        const ch = container.height;
 
-        const minX = -(layoutWidth / scale / 2 * (scale - 1));
-        const maxX = container.width - layoutWidth / scale / 2 * (scale + 1);
-        const minY = -(layoutHeight / scale / 2 * (scale - 1));
-        const maxY = container.height - layoutHeight / scale / 2 * (scale + 1);
+        const cx = iw / 2;
+        const cy = ih / 2;
+
+        const xMin = -cx * (1 + scale);
+        const xMax = cw - cx * (1 - scale);
+        const yMin = -cy * (1 + scale);
+        const yMax = ch - cy * (1 - scale);
 
         return {
-            x: Math.min(Math.max(x, minX), maxX),
-            y: Math.min(Math.max(y, minY), maxY),
+            x: Math.min(Math.max(x, xMin), xMax),
+            y: Math.min(Math.max(y, yMin), yMax),
         };
     };
 
@@ -68,7 +74,6 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                     imageState.position.x + mx,
                     imageState.position.y + my
                 );
-
                 setImageState({
                     position: newPosition,
                 });
@@ -107,7 +112,11 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
 
     return (
         <div className="relative w-full h-full flex items-center justify-center">
-            <div ref={containerRef} className="relative overflow-hidden w-full h-full" {...bind()}>
+            <div
+                ref={containerRef}
+                className="relative overflow-hidden w-full h-full"
+                {...bind()}
+            >
                 <img
                     ref={imageRef}
                     src={imageUrl}
@@ -121,7 +130,6 @@ export const ImageViewer: React.FC<{ imageUrl: string }> = ({ imageUrl }) => {
                         transform: `translate(${imageState.position.x}px, ${imageState.position.y}px) scale(${imageState.scale})`,
                         transformOrigin: 'center',
                         touchAction: 'none',
-                        zIndex: 1, // Ajouté pour s'assurer que l'image est au-dessus du Panel
                     }}
                     className="transform-gpu transition-transform duration-100"
                 />
